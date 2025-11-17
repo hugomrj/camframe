@@ -1,0 +1,30 @@
+# Entorno virtual
+venv/
+.env/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Archivos temporales
+*.log
+*.tmp
+
+# VSCode
+.vscode/
+
+# PyCharm
+.idea/
+
+# Compilados
+build/
+dist/
+*.egg-info/
+
+# MediaMTX configuración local
+mediamtx.yml
+
+# Archivos del sistema
+.DS_Store

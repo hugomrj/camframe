@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Subir video</title>
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Tus estilos globales -->
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body class="page-bg min-h-screen flex items-center justify-center">
+
+    <div class="card-container w-full max-w-md p-6 rounded-xl shadow-md">
+
+        <h1 class="title text-center mb-6">Subir video</h1>
+
+        <form action="/upload" method="post" enctype="multipart/form-data" class="space-y-5">
+
+            <!-- Nombre -->
+            <div>
+                <label class="label">Nombre del video</label>
+                <input class="input" type="text" name="nombre" required>
+            </div>
+
+            <!-- Archivo -->
+            <div>
+                <label class="label">Archivo de video</label>
+                <input class="input-file" type="file" name="file" accept="video/*" required>
+            </div>
+
+            <!-- Botón -->
+            <button class="btn-primary w-full" type="submit">
+                Subir
+            </button>
+
+        </form>
+
+        <div class="text-center mt-6">
+            <a href="/" class="link">Volver a la lista de videos</a>
+        </div>
+
+    </div>
+
+</body>
+</html>
+

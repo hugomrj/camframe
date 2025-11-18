@@ -2,6 +2,13 @@
 venv/
 .env/
 
+# Mantener carpeta pero ignorar todo el contenido
+videos/*
+!videos/.gitkeep
+
+# Base de datos local – no subir
+camframe.db
+
 # Python
 __pycache__/
 *.pyc

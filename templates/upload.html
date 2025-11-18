@@ -4,46 +4,45 @@
     <meta charset="UTF-8">
     <title>Subir video</title>
 
-    <!-- Tailwind -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Semantic UI -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.5.0/dist/semantic.min.css">
 
-    <!-- Tus estilos globales -->
+    <!-- Estilos propios -->
     <link rel="stylesheet" href="/static/style.css">
 </head>
 
-<body class="page-bg min-h-screen flex items-center justify-center">
+<body class="page-bg" style="min-height: 100vh; display: flex; align-items: center; justify-content: center;">
 
-    <div class="card-container w-full max-w-md p-6 rounded-xl shadow-md">
+    <div class="ui raised very padded text container segment" style="max-width: 420px;">
 
-        <h1 class="title text-center mb-6">Subir video</h1>
+        <h2 class="ui header">Subir video</h2>
 
-        <form action="/upload" method="post" enctype="multipart/form-data" class="space-y-5">
+        <form action="/upload" method="post" enctype="multipart/form-data" class="ui form">
 
             <!-- Nombre -->
-            <div>
-                <label class="label">Nombre del video</label>
-                <input class="input" type="text" name="nombre" required>
+            <div class="field">
+                <label>Nombre del video</label>
+                <input type="text" name="nombre" required>
             </div>
 
             <!-- Archivo -->
-            <div>
-                <label class="label">Archivo de video</label>
-                <input class="input-file" type="file" name="file" accept="video/*" required>
+            <div class="field">
+                <label>Archivo de video</label>
+                <input type="file" name="file" accept="video/*" required>
             </div>
 
             <!-- Botón -->
-            <button class="btn-primary w-full" type="submit">
+            <button class="ui primary fluid button" type="submit">
                 Subir
             </button>
 
         </form>
 
-        <div class="text-center mt-6">
-            <a href="/" class="link">Volver a la lista de videos</a>
+        <div class="ui center aligned basic segment">
+            <a href="/" class="ui basic blue label">Volver a la lista de videos</a>
         </div>
 
     </div>
 
 </body>
 </html>
-

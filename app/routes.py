@@ -23,12 +23,28 @@ UPLOAD_DIR = os.path.join(BASE_DIR, "videos")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
+
 @router.get("/", response_class=HTMLResponse)
 def index(request: Request, session: Session = Depends(get_session)):
-    videos = session.exec(select(Video)).all()
+    videos_db = session.exec(select(Video)).all()
+
+    videos = []
+    for v in videos_db:
+        videos.append({
+            "id": v.id,
+            "nombre": v.nombre,
+            "ruta": v.ruta,
+            "stream_key": v.stream_key,
+            "is_streaming": STREAMER.is_running(v.id),
+        })
+
     return templates.TemplateResponse(
-        "index.html", {"request": request, "videos": videos}
+        "index.html",
+        {"request": request, "videos": videos}
     )
+
+
+
 
 
 @router.get("/upload")

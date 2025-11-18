@@ -16,12 +16,9 @@ pip install -r requirements.txt
 ## 4. Ejecutar el servidor
 uvicorn app.main:app --reload
 
-## 5. Probar subida de videos
-POST http://localhost:8000/upload
+## 5. index
+POST http://localhost:8000/
 
-Campos:
-- nombre: nombre del video
-- file: archivo .mp4
 
 Los videos se guardan en la carpeta /videos y su registro queda en SQLite.
 
@@ -36,3 +33,5 @@ tar -xvf mediamtx_v1.15.3_linux_amd64.tar.gz
 
 mv mediamtx rtsp-server
 rm mediamtx_v1.15.3_linux_amd64.tar.gz
+
+ ./rtsp-server

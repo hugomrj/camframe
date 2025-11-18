@@ -4,74 +4,81 @@
     <meta charset="utf-8">
     <title>Videos</title>
 
-    <!-- Tailwind CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Semantic UI -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.5.0/dist/semantic.min.css">
 
-    <!-- Tu estilo base -->
+    <!-- Estilos propios -->
     <link rel="stylesheet" href="/static/style.css">
 </head>
 
 <body class="page-bg">
-    <div class="container mx-auto p-6">
-        <h1 class="title mb-4">Lista de videos</h1>
 
+    <div class="ui container" style="max-width: 700px; padding-top: 30px;">
+
+        <h1 class="ui header">Videos</h1>
 
         {% if videos %}
-        <ul class="space-y-4">
+        <div class="ui divided items">
+
             {% for v in videos %}
-            <li class="p-4 border rounded card-container">
-        
-                <div class="flex justify-between items-center">
-                    <strong>{{ v.nombre }}</strong>
-        
-                    {% if v.is_streaming %}
-                        <span class="badge badge-active">Activo</span>
-                    {% else %}
-                        <span class="badge badge-inactive">Inactivo</span>
-                    {% endif %}
+            <div class="item">
+
+                <div class="content">
+
+                    <!-- Título + Estado -->
+                    <div class="header">
+                        {{ v.nombre }}
+
+                        {% if v.is_streaming %}
+                            <span class="ui green label" style="margin-left: 10px;">Activo</span>
+                        {% else %}
+                            <span class="ui grey label" style="margin-left: 10px;">Inactivo</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Link archivo -->
+                    <div class="description" style="margin-top: 8px;">
+                        <a href="{{ v.ruta }}" target="_blank" class="ui basic blue label">
+                            Ver archivo
+                        </a>
+                    </div>
+
+                    <!-- Botones -->
+                    <div class="extra" style="margin-top: 10px;">
+                        {% if v.is_streaming %}
+                            <form action="/stream/stop/{{ v.id }}" method="get">
+                                <button class="ui red button">Detener</button>
+                            </form>
+                        {% else %}
+                            <form action="/stream/start/{{ v.id }}" method="get">
+                                <button class="ui primary button">Iniciar</button>
+                            </form>
+                        {% endif %}
+                    </div>
+
+                    <!-- RTSP -->
+                    <div class="meta" style="margin-top: 6px;">
+                        <span class="ui tiny grey text">
+                            rtsp://localhost:8554/video{{ v.id }}
+                        </span>
+                    </div>
+
                 </div>
-        
-                <div class="mt-2">
-                    <a href="{{ v.ruta }}" target="_blank" class="link">Ver archivo</a>
-                </div>
-        
-                <div class="mt-3">
-                    {% if v.is_streaming %}
-                    <!-- Si está activo: botón de detener -->
-                    <form action="/stream/stop/{{ v.id }}" method="get">
-                        <button class="btn-primary btn-danger">
-                            ■ Detener Stream
-                        </button>
-                    </form>
-        
-                    {% else %}
-                    <!-- Si está apagado: botón de iniciar -->
-                    <form action="/stream/start/{{ v.id }}" method="get">
-                        <button class="btn-primary">
-                            ▶ Iniciar Stream
-                        </button>
-                    </form>
-                    {% endif %}
-                </div>
-        
-                <p class="mt-3 muted">
-                    RTSP: <code>rtsp://localhost:8554/{{ v.stream_key }}</code>
-                </p>
-        
-            </li>
+            </div>
             {% endfor %}
-        </ul>
-        {% else %}
-        <p>No hay videos subidos.</p>
-        {% endif %}
-        
-        
-
-
-
-        <div class="mt-6">
-            <a href="/upload" class="link">Subir nuevo video</a>
         </div>
+
+        {% else %}
+        <p class="ui center aligned grey text" style="margin-top: 20px;">
+            No hay videos cargados.
+        </p>
+        {% endif %}
+
+        <div class="ui center aligned segment basic">
+            <a href="/upload" class="ui basic blue button">Subir nuevo video</a>
+        </div>
+
     </div>
+
 </body>
 </html>

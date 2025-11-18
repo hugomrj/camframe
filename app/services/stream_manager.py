@@ -27,10 +27,19 @@ class StreamManager:
         )
         self.processes[video_id] = p
 
+
+        
+
     def stop_stream(self, video_id: int):
         if video_id in self.processes:
             self.processes[video_id].terminate()
             del self.processes[video_id]
+
+
+    def is_running(self, video_id: int) -> bool:
+        return video_id in self.processes and self.processes[video_id].poll() is None
+
+
 
 
 STREAMER = StreamManager()

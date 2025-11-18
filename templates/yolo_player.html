@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>YOLO Stream - Video {{ video_id }}</title>
+
+    <!-- Semantic UI -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.5.0/dist/semantic.min.css">
+
+    <!-- Estilos propios -->
+    <link rel="stylesheet" href="/static/style.css">
+    
+    <style>
+        #videoFeed {
+            max-width: 100%;
+            max-height: 70vh;
+            width: auto;
+            height: auto;
+            border-radius: 8px;
+            border: 2px solid #2185d0;
+            object-fit: contain;
+            /* 🔥 Mejor renderizado */
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+            image-rendering: pixelated;
+        }
+        .container {
+            max-width: 1200px;
+        }
+        /* Para cámaras con relación de aspecto diferente */
+        .video-container {
+            background: #000;
+            padding: 10px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        @media (max-width: 768px) {
+            #videoFeed {
+                max-height: 50vh;
+            }
+        }
+    </style>
+
+
+
+
+</head>
+
+<body class="page-bg">
+
+    <div class="ui container" style="max-width: 1000px; padding-top: 30px;">
+
+        <!-- Header -->
+        <div class="ui stackable grid">
+            <div class="twelve wide column">
+                <h1 class="ui header">
+                    <i class="eye icon"></i>
+                    <div class="content">
+                        YOLO Processing
+                        <div class="sub header">Video #{{ video_id }} - Detecciones en tiempo real</div>
+                    </div>
+                </h1>
+            </div>
+
+   
+            <div class="four wide column right aligned">
+                <a href="/" class="ui basic blue button">
+                    <i class="arrow left icon"></i>
+                    Volver a lista
+                </a>
+                <button class="ui red button" onclick="stopYOLO()">
+                    <i class="stop icon"></i>
+                    Detener YOLO
+                </button>
+            </div>
+
+
+
+        </div>
+
+        <!-- Video Stream -->
+        <div class="ui segment raised">
+            <h3 class="ui header">
+                <i class="video icon"></i>
+                <div class="content">
+                    Stream en vivo
+                    <div class="sub header">Procesamiento con YOLO en tiempo real</div>
+                </div>
+            </h3>
+            
+
+            <div class="video-container">
+                <img id="videoFeed" src="" alt="YOLO Stream Loading...">
+            </div>
+
+            <!-- Estadísticas -->
+            <div class="ui three column stackable grid stats-grid">
+                <div class="column center aligned">
+                    <div class="ui statistic">
+                        <div class="value" id="fpsCounter">
+                            0
+                        </div>
+                        <div class="label">
+                            FPS
+                        </div>
+                    </div>
+                </div>
+                <div class="column center aligned">
+                    <div class="ui statistic">
+                        <div class="value" id="detectionCount">
+                            0
+                        </div>
+                        <div class="label">
+                            Detecciones
+                        </div>
+                    </div>
+                </div>
+                <div class="column center aligned">
+                    <div class="ui statistic">
+                        <div class="value" id="connectionStatus">
+                            <i class="green circle icon"></i>
+                        </div>
+                        <div class="label">
+                            Estado
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detecciones -->
+        <div class="ui segment raised">
+            <h3 class="ui header">
+                <i class="list icon"></i>
+                <div class="content">
+                    Detecciones
+                    <div class="sub header">Objetos detectados en el frame actual</div>
+                </div>
+            </h3>
+            
+            <div class="ui message info">
+                <i class="info circle icon"></i>
+                Las detecciones se actualizan en tiempo real con el stream
+            </div>
+
+            <div id="detectionsContainer">
+                <div class="ui active centered inline loader" id="detectionsLoader"></div>
+                <div id="detectionsList" class="detections-panel" style="display: none;">
+                    <!-- Las detecciones se insertarán aquí -->
+                </div>
+                <div id="noDetections" class="ui message" style="display: none;">
+                    <i class="info circle icon"></i>
+                    No se detectaron objetos en este frame
+                </div>
+            </div>
+        </div>
+
+        <!-- Información del Stream -->
+        <div class="ui segment">
+            <h4 class="ui header">
+                <i class="info circle icon"></i>
+                Información del Stream
+            </h4>
+            <div class="ui list">
+                <div class="item">
+                    <i class="linkify icon"></i>
+                    <div class="content">
+                        <div class="header">URL RTSP</div>
+                        <div class="description">rtsp://localhost:8554/video{{ video_id }}</div>
+                    </div>
+                </div>
+                <div class="item">
+                    <i class="microchip icon"></i>
+                    <div class="content">
+                        <div class="header">Procesamiento</div>
+                        <div class="description">YOLO v8 - Detección de objetos en tiempo real</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const videoId = {{ video_id }};
+        let ws = null;
+        let frameCount = 0;
+        let lastFpsUpdate = Date.now();
+        let fps = 0;
+
+        function connectWebSocket() {
+            ws = new WebSocket(`ws://${window.location.host}/yolo/ws/${videoId}`);
+            
+            ws.onopen = function() {
+                console.log("WebSocket conectado para YOLO stream");
+                updateConnectionStatus(true);
+            };
+            
+            ws.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                
+                // Actualizar imagen
+                document.getElementById('videoFeed').src = `data:image/jpeg;base64,${data.image}`;
+                
+                // Calcular FPS
+                frameCount++;
+                const now = Date.now();
+                if (now - lastFpsUpdate >= 1000) {
+                    fps = frameCount;
+                    frameCount = 0;
+                    lastFpsUpdate = now;
+                    document.getElementById('fpsCounter').textContent = fps;
+                }
+                
+                // Actualizar detecciones
+                updateDetections(data.detections);
+            };
+            
+            ws.onclose = function() {
+                console.log("WebSocket desconectado");
+                updateConnectionStatus(false);
+                // Reconectar después de 3 segundos
+                setTimeout(connectWebSocket, 3000);
+            };
+            
+            ws.onerror = function(error) {
+                console.error("WebSocket error:", error);
+                updateConnectionStatus(false);
+            };
+        }
+
+        function updateDetections(detections) {
+            const detectionsList = document.getElementById('detectionsList');
+            const noDetections = document.getElementById('noDetections');
+            const loader = document.getElementById('detectionsLoader');
+            
+            // Ocultar loader
+            loader.style.display = 'none';
+            
+            // Actualizar contador
+            document.getElementById('detectionCount').textContent = detections.length;
+            
+            if (detections.length === 0) {
+                detectionsList.style.display = 'none';
+                noDetections.style.display = 'block';
+                return;
+            }
+            
+            noDetections.style.display = 'none';
+            detectionsList.style.display = 'block';
+            
+            // Agrupar detecciones por clase
+            const detectionGroups = {};
+            detections.forEach(det => {
+                if (!detectionGroups[det.class]) {
+                    detectionGroups[det.class] = [];
+                }
+                detectionGroups[det.class].push(det);
+            });
+            
+            // Generar HTML para detecciones
+            let html = '';
+            Object.keys(detectionGroups).forEach(className => {
+                const classDetections = detectionGroups[className];
+                const confidence = classDetections.reduce((acc, det) => acc + det.confidence, 0) / classDetections.length;
+                
+                html += `
+                    <div class="ui segment">
+                        <div class="ui header small">
+                            ${className}
+                            <div class="ui label basic">
+                                ${classDetections.length} ${classDetections.length === 1 ? 'objeto' : 'objetos'}
+                            </div>
+                        </div>
+                        <div class="ui labels">
+                            ${classDetections.map(det => `
+                                <div class="ui label detection-badge ${getConfidenceColor(det.confidence)}">
+                                    ${Math.round(det.confidence * 100)}%
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            detectionsList.innerHTML = html;
+        }
+
+        function getConfidenceColor(confidence) {
+            if (confidence >= 0.8) return 'green';
+            if (confidence >= 0.5) return 'yellow';
+            return 'red';
+        }
+
+        function updateConnectionStatus(connected) {
+            const statusElement = document.getElementById('connectionStatus');
+            if (connected) {
+                statusElement.innerHTML = '<i class="green circle icon"></i>';
+                statusElement.title = 'Conectado';
+            } else {
+                statusElement.innerHTML = '<i class="red circle icon"></i>';
+                statusElement.title = 'Desconectado - Reconectando...';
+            }
+        }
+
+        function stopYOLO() {
+            if (ws) {
+                ws.close();
+            }
+            
+            fetch(`/yolo/stop/${videoId}`, { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    // Mostrar mensaje de confirmación
+                    const message = `
+                        <div class="ui success message">
+                            <i class="close icon"></i>
+                            <div class="header">
+                                YOLO stream detenido
+                            </div>
+                            <p>El procesamiento YOLO ha sido detenido correctamente.</p>
+                        </div>
+                    `;
+                    
+                    // Insertar mensaje al inicio
+                    document.querySelector('.ui.container').insertAdjacentHTML('afterbegin', message);
+                    
+                    // Redirigir después de 2 segundos
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 2000);
+                    
+                    // Cerrar mensajes
+                    $('.message .close').on('click', function() {
+                        $(this).closest('.message').transition('fade');
+                    });
+                })
+                .catch(error => {
+                    console.error('Error stopping YOLO:', error);
+                });
+        }
+
+        // Iniciar cuando la página cargue
+        window.onload = function() {
+            connectWebSocket();
+            
+            // Inicializar tooltips de Semantic UI
+            $('.statistic').popup();
+        };
+    </script>
+
+    <!-- jQuery para Semantic UI components -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.5.0/dist/semantic.min.js"></script>
+
+</body>
+</html>

@@ -25,16 +25,30 @@
 
                 <div class="content">
 
+
                     <!-- Título + Estado -->
                     <div class="header">
                         {{ v.nombre }}
-
+                        
                         {% if v.is_streaming %}
-                            <span class="ui green label" style="margin-left: 10px;">Activo</span>
+                            <span class="ui green label" style="margin-left: 10px;">Stream Activo</span>
+                            
+                            {% if v.is_yolo_active %}
+                                <span class="ui blue label" style="margin-left: 5px;">
+                                    <i class="robot icon"></i> YOLO Activo
+                                </span>
+                            {% else %}
+                                <span class="ui grey label" style="margin-left: 5px;">
+                                    <i class="robot icon"></i> YOLO Inactivo
+                                </span>
+                            {% endif %}
+                            
                         {% else %}
                             <span class="ui grey label" style="margin-left: 10px;">Inactivo</span>
                         {% endif %}
                     </div>
+
+
 
                     <!-- Link archivo -->
                     <div class="description" style="margin-top: 8px;">
@@ -43,18 +57,45 @@
                         </a>
                     </div>
 
-                    <!-- Botones -->
-                    <div class="extra" style="margin-top: 10px;">
-                        {% if v.is_streaming %}
-                            <form action="/stream/stop/{{ v.id }}" method="get">
-                                <button class="ui red button">Detener</button>
-                            </form>
-                        {% else %}
-                            <form action="/stream/start/{{ v.id }}" method="get">
-                                <button class="ui primary button">Iniciar</button>
-                            </form>
-                        {% endif %}
-                    </div>
+
+<!-- Botones -->
+<div class="extra" style="margin-top: 10px;">
+    {% if v.is_streaming %}
+        <form action="/stream/stop/{{ v.id }}" method="get" style="display: inline;">
+            <button class="ui red button">Detener</button>
+        </form>
+        
+        <!-- Botón para INICIAR YOLO (cuando el stream normal está activo pero YOLO no) -->
+        {% if not v.is_yolo_active %}
+
+            <form action="/yolo/start/{{ v.id }}" method="post" style="display: inline;" 
+                onsubmit="startYolo(event, {{ v.id }})">
+                <button class="ui orange button" type="submit">
+                    <i class="rocket icon"></i>
+                    Iniciar YOLO
+                </button>
+            </form>
+            
+        {% endif %}
+        
+        <!-- Botón para VER YOLO (solo cuando YOLO está activo) -->
+        {% if v.is_yolo_active %}
+            <a href="/yolo/player/{{ v.id }}" class="ui green button" target="_blank">
+                <i class="eye icon"></i>
+                Ver con YOLO
+            </a>
+        {% endif %}
+        
+    {% else %}
+        <form action="/stream/start/{{ v.id }}" method="get" style="display: inline;">
+            <button class="ui primary button">Iniciar Stream</button>
+        </form>
+    {% endif %}
+</div>
+
+
+
+
 
                     <!-- RTSP -->
                     <div class="meta" style="margin-top: 6px;">
@@ -78,7 +119,69 @@
             <a href="/upload" class="ui basic blue button">Subir nuevo video</a>
         </div>
 
-    </div>
 
+
+    <!-- 🆕 Script para iniciar YOLO -->
+<script>
+function startYolo(event, videoId) {
+    event.preventDefault(); // Evitar envío normal del formulario
+    
+    console.log('Iniciando YOLO para video:', videoId);
+    
+    // Mostrar mensaje de carga
+    const button = event.target.querySelector('button');
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="spinner loading icon"></i> Iniciando...';
+    button.disabled = true;
+    
+    fetch(`/yolo/start/${videoId}`, { method: 'POST' })
+        .then(response => {
+            console.log('Respuesta recibida:', response.status);
+            return response.json();
+        })
+        .then(data => {
+            console.log('Datos recibidos:', data);
+            
+            if (data.status) {
+                // ✅ YOLO iniciado - mostrar mensaje de éxito
+                button.innerHTML = '<i class="check icon"></i> ¡Iniciado!';
+                button.classList.remove('orange');
+                button.classList.add('green');
+                
+                console.log('YOLO iniciado, recargando en 3 segundos...');
+                
+                // Recargar página después de 3 segundos (más tiempo)
+                setTimeout(() => {
+                    console.log('Recargando página...');
+                    window.location.href = '/'; // Forzar recarga
+                }, 3000);
+            } else {
+                // ❌ Error
+                console.error('Error al iniciar YOLO:', data.error);
+                button.innerHTML = '<i class="exclamation icon"></i> Error';
+                button.classList.remove('orange');
+                button.classList.add('red');
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.classList.remove('red');
+                    button.classList.add('orange');
+                    button.disabled = false;
+                }, 3000);
+            }
+        })
+        .catch(error => {
+            console.error('Error de red:', error);
+            button.innerHTML = '<i class="exclamation icon"></i> Error de red';
+            button.classList.remove('orange');
+            button.classList.add('red');
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.classList.remove('red');
+                button.classList.add('orange');
+                button.disabled = false;
+            }, 3000);
+        });
+}
+</script>
 </body>
 </html>

@@ -2,9 +2,6 @@
 venv/
 .env/
 
-# Mantener carpeta pero ignorar todo el contenido
-videos/*
-!videos/.gitkeep
 
 # Base de datos local – no subir
 camframe.db
@@ -31,7 +28,7 @@ dist/
 *.egg-info/
 
 # MediaMTX configuración local
-mediamtx.yml
+# mediamtx.yml
 
 # Archivos del sistema
 .DS_Store

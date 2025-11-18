@@ -1,0 +1,11 @@
+# rtsp-simple-server.yml
+paths:
+  video1:
+    source: publisher
+    sourceProtocol: automatic
+  video2:
+    source: publisher
+    sourceProtocol: automatic
+  video3:
+    source: publisher
+    sourceProtocol: automatic

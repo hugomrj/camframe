@@ -72,15 +72,15 @@ class YOLOProcessor:
                 # 🔥 OPTIMIZACIÓN: Resolución MUY BAJA para máximo rendimiento
                 height, width = frame.shape[:2]
 
-                # Reducir a 240p (426x240) - MÁS PEQUEÑO
-                target_height = 240  # En lugar de 480
+
+                target_height = 720
                 scale = target_height / height
                 target_width = int(width * scale)
 
-                # Limitar ancho máximo para mantener aspecto 16:9
-                if target_width > 426:  # Aspect ratio para 240p
-                    target_width = 426
-                    target_height = int(height * (426 / width))
+                if target_width > 1280:
+                    target_width = 1280
+                    target_height = int(height * (1280 / width))
+
 
                 frame_resized = cv2.resize(frame, (target_width, target_height))
                 #logger.info(f"📐 Resolución OPTIMIZADA: {target_width}x{target_height}")
